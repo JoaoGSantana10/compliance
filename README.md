@@ -1,214 +1,284 @@
 # Compliance Shield
 
-Aplicação de estudo voltada a processos de **KYC (Know Your Customer)** e **AML (Anti-Money Laundering)**. O objetivo do projeto é servir como um ponto central para cadastrar empresas, consultar bases externas simuladas e consolidar indicadores que auxiliem na avaliação de riscos de compliance.
+Aplicação educacional em Java e Spring Boot para estudo de **KYC** (Know Your Customer), **AML** (Anti-Money Laundering), integração HTTP e regras de análise de risco.
 
-> **Status atual:** o projeto é um esqueleto de aplicação Spring Boot. A estrutura principal e o ambiente de build estão configurados, mas o cadastro de empresas, os endpoints REST e a integração com APIs mocadas ainda não foram implementados.
+O sistema recebe o cadastro de empresas por uma API REST gerada pelo Spring Data REST, consulta fontes externas simuladas no **Mockoon** e consolida os resultados em uma avaliação armazenada em memória.
 
-## Contexto
+> **Este projeto não é um mecanismo de compliance para uso regulatório ou operacional.** Os dados, regras e respostas Mockoon são fictícios e existem apenas para demonstração técnica e educacional.
 
-Empresas sujeitas a normas regulatórias precisam conhecer os clientes com os quais se relacionam. O processo de KYC organiza a coleta e a validação de dados cadastrais para confirmar a identidade de pessoas físicas e jurídicas.
+## O que a aplicação faz
 
-O AML reúne controles destinados a prevenir, detectar e reportar tentativas de utilização de organizações ou transações para ocultar a origem ilícita de recursos. Nesse contexto, uma aplicação de compliance pode auxiliar ao:
+- Expõe o recurso REST `companies`.
+- Recebe uma empresa com nome e número de registro.
+- Após a criação, executa automaticamente uma análise de risco.
+- Consulta uma API simulada de sanções na porta `3001`.
+- Consulta uma API simulada de AML/PEP na porta `3002`.
+- Converte os JSONs externos em objetos de domínio.
+- Aplica uma política de risco.
+- Atualiza a empresa com score, nível e status.
+- Mantém as entidades em um repositório Spring Data Map, ou seja, em memória.
 
-- manter uma visão centralizada das empresas cadastradas;
-- consultar informações em listas de sanções;
-- identificar diretores vinculados a Pessoas Politicamente Expostas (PEPs);
-- consolidar sinais de risco em uma avaliação;
-- registrar o histórico das verificações realizadas.
+## Tecnologias utilizadas
 
-Este projeto utiliza APIs simuladas para representar fontes externas. Assim, é possível desenvolver e testar fluxos de compliance sem depender de provedores reais ou expor dados de produção.
-
-## Objetivos do estudo
-
-- Modelar o cadastro de empresas e seus representantes;
-- Consumir APIs simuladas de sanções e PEP;
-- Aplicar regras de classificação de risco;
-- Registrar os resultados das verificações;
-- Demonstrar boas práticas de testes unitários e de integração;
-- Estudar contratos HTTP, tratamento de falhas e configuração de serviços.
-
-## Conceitos fundamentais
-
-### KYC
-
-**Know Your Customer**, ou **Conheça o seu Cliente**, é o conjunto de processos usados para identificar e verificar clientes antes e durante o relacionamento comercial.
-
-Em uma avaliação de pessoa jurídica, podem ser considerados:
-
-- razão social e nome fantasia;
-- documento de identificação empresarial;
-- endereço e país;
-- atividade econômica;
-- sócios e administradores;
-- país de origem dos recursos;
-- histórico de relacionamento;
-- nível de risco associado ao cliente.
-
-O objetivo é entender quem é o cliente, validar os dados informados e monitorar a relação ao longo do tempo.
-
-### AML
-
-**Anti-Money Laundering**, ou **Prevenção à Lavagem de Dinheiro**, envolve regras e procedimentos para impedir que recursos de origem ilícita sejam introduzidos no sistema financeiro ou comercial.
-
-Controles comuns incluem:
-
-- validação de identidade;
-- análise de listas de sanções;
-- identificação de PEPs;
-- monitoramento de transações;
-- análise de padrões incompatíveis com o perfil do cliente;
-- reporte de atividades suspeitas;
-- manutenção de registros para auditoria.
-
-> Este projeto é um recurso educacional e não substitui aconselhamento jurídico, regulatório ou uma solução comercial de compliance.
-
-### PEP
-
-Uma **Pessoa Politicamente Exposta** exerce ou exerceu cargos públicos relevantes e pode estar sujeita a maior risco de conflito de interesse ou corrupção, conforme a legislação aplicável.
-
-No contexto da aplicação, a avaliação pode verificar se administradores ou sócios estão associados a PEPs em uma base simulada. Ser PEP não significa, por si só, que exista prática ilícita; apenas eleva a necessidade de análise e monitoramento.
-
-### Sanções
-
-Listas de sanções relacionam pessoas ou organizações sujeitas a restrições determinadas por governos ou entidades regulatórias. Uma correspondência pode exigir bloqueio, revisão humana ou diligência adicional, dependendo da regra aplicável.
-
-## Fluxo planejado
-
-```text
-Cliente ou consumidor da API
-        |
-        v
-API de cadastro/consulta
-        |
-        v
-Serviço de Compliance
-        |
-        +--> API simulada de sanções
-        |
-        +--> API simulada de PEP
-        |
-        v
-Consolidação e classificação de risco
-        |
-        v
-Resultado da análise
-```
-
-Um fluxo típico deve seguir estas etapas:
-
-1. Cadastrar uma empresa com seus dados básicos.
-2. Validar campos obrigatórios e formatar documentos.
-3. Consultar a base simulada de sanções pelo identificador da empresa.
-4. Consultar administradores e sócios na base simulada de PEP.
-5. Consolidar os resultados obtidos pelas fontes externas.
-6. Atribuir uma classificação de risco ou uma recomendação de revisão.
-7. Persistir o resultado e permitir consultas posteriores.
-8. Registrar falhas temporárias sem apresentar uma análise como aprovada automaticamente.
-
-## Riscos e regras possíveis
-
-A implementação pode iniciar com uma regra simples e evoluir para um motor de avaliação mais completo.
-
-| Condição simulada | Exemplo de indicação |
+| Tecnologia | Uso no projeto |
 | --- | --- |
-| Empresa encontrada em lista de sanções | Risco crítico ou revisão obrigatória |
-| Diretor ou sócio identificado como PEP | Risco elevado |
-| Dados cadastrais incompletos | Diligência pendente |
-| Correspondência parcial em uma fonte externa | Revisão manual |
-| Nenhuma ocorrência encontrada | Risco baixo |
-| Fonte indisponível ou timeout | Análise inconclusiva |
+| Java 25 | Linguagem principal |
+| Spring Boot 4.1.2 | Inicialização da aplicação e infraestrutura web |
+| Spring Data REST | Geração do recurso `GET/POST /companies` |
+| Spring Data KeyValue/Map | Persistência em memória |
+| OpenFeign | Clientes das APIs Mockoon |
+| Resilience4j/Circuit Breaker | Resiliência configurada para integrações |
+| Lombok | Redução de código repetitivo nas entidades |
+| Gradle Wrapper | Compilação e execução |
+| JUnit 5 | Estrutura de testes |
+| Mockoon | Mock das APIs externas de sanções e AML/PEP |
 
-Essas categorias são apenas exemplos didáticos. Os critérios reais devem ser definidos por especialistas de compliance e pelas regras aplicáveis ao contexto da organização.
-
-## Arquitetura planejada
+## Arquitetura
 
 ```text
-src/main/java/dio/compliance
-├── controller/       Recursos REST
-├── domain/           Entidades e objetos de negócio
-├── dto/              Contratos de entrada e saída
-├── repository/       Persistência de dados
-├── service/          Casos de uso e regras de compliance
-├── integration/      Clientes das APIs simuladas
-└── exception/        Tratamento de erros
-
-src/test/java/dio/compliance
-├── unit/             Testes de regras e serviços
-└── integration/      Testes dos recursos REST e APIs mocadas
+Cliente HTTP
+    |
+    v
+POST /companies
+    |
+    v
+Spring Data REST + CompanyEntityRepository
+    |
+    v
+CompanyEventHandler (@HandleAfterCreate)
+    |
+    v
+AnalyzeCompanyRiskUseCase
+    |
+    +--> SanctionClient ----------> Mockoon :3001
+    |
+    +--> AntiMoneyLauderingClient -> Mockoon :3002
+    |
+    v
+ComplianceScreening
+    |
+    v
+CompliancePolicy
+    |
+    v
+RiskAssessment
+    |
+    v
+InMemoryCompanyRepository -> armazenamento em memória
 ```
 
-A arquitetura não precisa estar limitada a esses pacotes. A estrutura pode evoluir conforme a complexidade da aplicação.
+### Responsabilidade dos pacotes
 
-## APIs mocadas
+| Pacote | Responsabilidade |
+| --- | --- |
+| `dio.compliance` | Inicialização Spring Boot e ativação de Feign/Map repositories |
+| `dio.compliance.application` | Casos de uso que coordenam o fluxo de análise |
+| `dio.compliance.domain` | Entidades, contratos e regras de negócio |
+| `dio.compliance.infraestructure.persistence.entity` | Entidade persistível e conversões de domínio |
+| `dio.compliance.infraestructure.persistence.event` | Disparo da análise após a criação da empresa |
+| `dio.compliance.infraestructure.persistence.repository` | Repositório Spring Data e adaptador em memória |
+| `dio.compliance.infraestructure.rest.client` | Contratos HTTP Feign |
+| `dio.compliance.infraestructure.rest.dto` | Payloads JSON das fontes externas |
 
-O projeto deve utilizar servidores ou respostas simuladas para representar fontes externas. Os mocks podem ser implementados como respostas controladas pelo próprio Spring Boot ou por uma ferramenta específica.
+Cada pacote possui `package-info.java` com uma explicação geral. Todas as classes públicas, registros, interfaces, métodos e principais tipos de retorno também possuem Javadoc.
 
-Exemplos de contratos:
+## Modelos de domínio
 
-```http
-GET /mock/sanctions/{companyId}
+### Company
+
+Representa uma empresa com:
+
+- `id`: UUID de domínio;
+- `name`: razão social ou nome da empresa;
+- `registrationNumber`: identificador usado nas consultas externas;
+- `riskAssessment`: avaliação opcional aplicada após a triagem.
+
+### ComplianceScreening
+
+Reúne a resposta normalizada das fontes:
+
+- `sanctions`: correspondências em sanções;
+- `amlProfile`: score AML, flags, presença de PEP e exposições políticas.
+
+### RiskAssessment
+
+Contém o resultado final:
+
+- `score`: pontuação AML usada no cálculo;
+- `level`: `LOW`, `MEDIUM`, `HIGH` ou `CRITICAL`;
+- `status`: `APROVED`, `REJECTED` ou `MANUAL_REVIEW`.
+
+O nome `APROVED` é mantido no código atual.
+
+## Regras de risco atuais
+
+A implementação atual está em `CompliancePolicy`:
+
+1. Uma correspondência de sanção com `confidence > 0.8` gera `REJECTED`.
+2. Se não houver rejeição e houver PEP, gera `MANUAL_REVIEW`.
+3. Se não houver rejeição nem PEP e o score AML for maior que `70`, gera `MANUAL_REVIEW`.
+4. Caso contrário, gera `APROVED`.
+5. Status `REJECTED` gera nível `CRITICAL`.
+6. Scores maiores que `70` geram nível `HIGH`.
+7. Scores maiores que `30` geram nível `MEDIUM`.
+8. Os demais scores geram nível `LOW`.
+
+Estes valores são regras didáticas. Não representam recomendação jurídica ou metodologia regulatória real.
+
+## Utilização do Mockoon
+
+O projeto utiliza o **Mockoon** para simular as duas APIs externas sem dependências reais. As URLs são configuradas em `src/main/resources/application.properties`:
+
+```properties
+spring.cloud.openfeign.client.config.sanction-client.url=http://localhost:3001
+spring.cloud.openfeign.client.config.aml-client.url=http://localhost:3002
 ```
+
+### Ambiente recomendado
+
+Crie um ambiente Mockoon com dois servidores separados ou uma única definição com duas interfaces. Configure:
+
+| Serviço | Porta | Método e rota |
+| --- | --- | --- |
+| Sanções | `3001` | `GET /sanctions/companies/{registrationNumber}` |
+| AML/PEP | `3002` | `GET /aml/v1/screening/{registrationNumber}` |
+
+Inicie os ambientes Mockoon antes de criar uma empresa na aplicação.
+
+### Rota de sanções
+
+Na porta `3001`, crie uma rota `GET` com o caminho:
+
+```text
+/sanctions/companies/:registrationNumber
+```
+
+Exemplo de resposta `200`:
 
 ```json
 {
-  "companyId": "empresa-001",
-  "sanctioned": true,
-  "lists": ["Lista Educacional A"],
-  "lastUpdated": "2026-11-19"
+  "matches": [
+    {
+      "entity": "{{urlParam 'registrationNumber'}}",
+      "list": "Lista Educacional de Sanções",
+      "reason": "Correspondência fictícia utilizada em teste",
+      "confidenceScore": 0.98
+    }
+  ]
 }
 ```
 
-```http
-GET /mock/pep/{personDocument}
+### Rota AML
+
+Na porta `3002`, crie uma rota `GET` com o caminho:
+
+```text
+/aml/v1/screening/:registrationNumber
 ```
+
+Exemplo de resposta `200`:
 
 ```json
 {
-  "document": "12345678900",
-  "name": "Pessoa Exemplo",
-  "pep": true,
-  "positions": ["Cargo público fictício"],
-  "lastUpdated": "2026-11-19"
+  "riskScore": 85,
+  "flags": [
+    "Origem geográfica incomum"
+  ],
+  "pep": {
+    "isPep": true,
+    "occurrences": [
+      {
+        "personName": "Pessoa Fictícia",
+        "position": "Cargo público fictício"
+      }
+    ]
+  }
 }
 ```
 
-Os dados acima são fictícios e existem somente para demonstrar o formato previsto.
+Os cabeçalhos configurados no cliente:
 
-## Tecnologias
+- Sanções: `x-api-key: kyc-secret-123`;
+- AML: cabeçalho `Authorization` definido pela propriedade de aplicação.
 
-- Java 25
-- Spring Boot 4.1.2
-- Gradle Wrapper
-- JUnit 5
-- Spring Boot Test
+No ambiente real, substitua os valores fictícios por gerenciamento seguro de credenciais. Não coloque credenciais reais no repositório.
+
+Para cenários sem correspondências, configure:
+
+```json
+{
+  "matches": []
+}
+```
+
+Para o caso sem PEP:
+
+```json
+{
+  "riskScore": 20,
+  "flags": [],
+  "pep": {
+    "isPep": false,
+    "occurrences": []
+  }
+}
+```
+
+Mais detalhes estão em [`docs/MOCKOON.md`](docs/MOCKOON.md).
 
 ## Pré-requisitos
 
-- JDK 25
-- Git
-- Conexão com a internet na primeira resolução das dependências Gradle
+- JDK 25;
+- Git;
+- Mockoon Desktop ou Mockoon CLI;
+- acesso local às portas `3001` e `3002`.
 
 ## Como executar
 
-### Linux e macOS
+### 1. Inicie os ambientes Mockoon
+
+Configure e execute as duas APIs simuladas nas portas descritas acima.
+
+### 2. Inicie a aplicação
+
+Linux/macOS:
 
 ```bash
 ./gradlew bootRun
 ```
 
-### Windows
+Windows:
 
 ```bat
 gradlew.bat bootRun
 ```
 
-Após a implementação dos recursos web, a aplicação pode ser acessada no endereço configurado pelo Spring Boot, normalmente:
+A aplicação será iniciada em `http://localhost:8080`.
 
-```text
-http://localhost:8080
+### 3. Confira o recurso de empresas
+
+```bash
+curl http://localhost:8080/companies
 ```
 
-No estado atual, o comando inicia o contexto da aplicação, mas não oferece endpoints REST.
+### 4. Cadastre uma empresa
+
+```bash
+curl -X POST http://localhost:8080/companies \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Empresa Fictícia",
+    "registrationNumber": "empresa-001"
+  }'
+```
+
+A resposta inicial pode não conter ainda a avaliação: o evento `@HandleAfterCreate` é executado após a criação e chama o caso de uso de forma síncrona. Consulte o mesmo recurso novamente:
+
+```bash
+curl http://localhost:8080/companies
+```
+
+No Spring Data REST, o identificador da entidade é o UUID. A consulta pelo JSONLink ou pelo identificador depende da representação HAL configurada pelo Spring.
 
 ## Como testar
 
@@ -218,54 +288,18 @@ Execute todos os testes:
 ./gradlew test
 ```
 
-Gere o relatório HTML dos testes:
-
-```bash
-./gradlew test
-```
-
-O resultado será disponibilizado em:
+Relatório:
 
 ```text
 build/reports/tests/test/index.html
 ```
 
-## Boas práticas previstas
-
-- Não persistir dados pessoais reais em exemplos ou testes.
-- Utilizar dados claramente fictícios em mocks.
-- Separar chamadas externas da lógica de negócio.
-- Configurar URLs externas por propriedades da aplicação.
-- Definir timeouts e limitar tentativas para evitar lentidão em cascata.
-- Tratar indisponibilidade de fonte sem transformar erro técnico em "cliente sem risco".
-- Diferenciar ausência de correspondência de erro na consulta.
-- Registrar fonte, data da consulta e versão da regra aplicada.
-- Testar correspondências exatas, parciais, múltiplas e inexistentes.
-- Validar entradas na camada REST antes das consultas.
-- Aplicar autenticação e autorização antes de adicionar persistência ou dados sensíveis.
-- Não usar o termo PEP como confirmação automática de irregularidade.
-- Considerar auditoria, retenção e proteção de dados pessoais desde o desenho inicial.
-
-## Possíveis evoluções
-
-- API REST para criação e consulta de empresas;
-- cadastro de sócios e administradores;
-- persistência com banco relacional;
-- clientes configuráveis para APIs externas;
-- mock server para cenários positivos e negativos;
-- motor de pontuação de risco;
-- histórico versionado das avaliações;
-- autenticação e perfis de usuário;
-- documentação OpenAPI/Swagger;
-- fila para processar grandes volumes de consultas;
-- observabilidade com logs estruturados e métricas;
-- testes de contrato das integrações;
-- contêinerização com Docker.
-
-## Estrutura do projeto
+## Estrutura dos arquivos
 
 ```text
 .
+├── docs/
+│   └── MOCKOON.md
 ├── gradle/wrapper/
 ├── src/
 │   ├── main/
@@ -279,7 +313,49 @@ build/reports/tests/test/index.html
 └── README.md
 ```
 
+## Limitações atuais
+
+- Os dados são armazenados apenas em memória e desaparecem ao reiniciar.
+- Não há controlador REST próprio; o recurso é fornecido pelo Spring Data REST.
+- Não há validação explícita de campos na entidade.
+- O fallback de sanções retorna uma lista vazia em falha.
+- O cliente AML não possui fallback configurado.
+- Não há persistência em banco relacional.
+- Não há autenticação ou autorização.
+- A API Mockoon deve ser iniciada manualmente.
+- Os dados não devem ser usados como evidência ou decisão regulatória.
+
+## Próximos passos sugeridos
+
+- Validar entrada com Bean Validation.
+- Criar testes unitários da política e dos conversores.
+- Criar testes de contrato para as respostas Mockoon.
+- Diferenciar fallback técnico de ausência de correspondência.
+- Adicionar fallback ao cliente AML.
+- Persistir em PostgreSQL ou outro banco relacional.
+- Configurar timeouts e retry com política clara.
+- Incluir OpenAPI/Swagger.
+- Criar Docker Compose com aplicação e Mockoon.
+- Adicionar logs estruturados e observabilidade.
+
+## Conceitos fundamentais
+
+### KYC
+
+KYC significa **Know Your Customer**. Reúne processos para confirmar identidade, dados cadastrais, representantes e risco antes e durante o relacionamento.
+
+### AML
+
+AML significa **Anti-Money Laundering**. Reúne controles para prevenir uso de empresas ou transações na ocultação ou movimentação de recursos ilícitos.
+
+### PEP
+
+PEP significa **Pessoa Politicamente Exposta**. A identificação eleva a necessidade de diligência, mas não prova por si só irregularidade.
+
+### Sanções
+
+São restrições associadas a pessoas ou organizações por governos ou entidades regulatórias. Uma correspondência pode exigir revisão humana, bloqueio ou diligência adicional conforme a regra aplicável.
+
 ## Licença
 
 Este projeto está licenciado nos termos da [MIT License](LICENSE).
- 

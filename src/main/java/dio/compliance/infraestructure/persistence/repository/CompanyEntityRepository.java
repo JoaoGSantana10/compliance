@@ -8,6 +8,9 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @RepositoryRestResource(path = "companies")
+/**
+ * Repositório Spring Data que gera o recurso REST {@code /companies}.
+ */
 public interface CompanyEntityRepository extends CrudRepository<CompanyEntity, UUID> {
 
 }
